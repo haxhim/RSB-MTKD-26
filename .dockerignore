@@ -1,0 +1,13 @@
+.git
+.gitignore
+.env
+.env.*
+node_modules
+output
+.DS_Store
+data
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.webp

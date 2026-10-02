@@ -1,0 +1,5 @@
+# Local preview only. Dokploy uses compose.yaml without this override.
+services:
+  rsb:
+    ports:
+      - "127.0.0.1:3000:3000"

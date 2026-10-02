@@ -1,0 +1,19 @@
+{
+  "name": "rsb-taekwondo-operations",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node --watch server.mjs",
+    "check": "node --check server.mjs && node --check public/app.js && node --test tests/*.test.mjs",
+    "check:full-stack": "node tests/full-stack.mjs",
+    "seed:snapshot": "node scripts/snapshot-seed.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "pg": "^8.23.1"
+  }
+}
