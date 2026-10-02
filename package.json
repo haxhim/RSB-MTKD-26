@@ -10,6 +10,8 @@
     "check:full-stack": "node tests/full-stack.mjs",
     "check:day1": "node tests/day1-completion.mjs",
     "check:day2": "node tests/day2-completion.mjs",
+    "check:stress": "node tests/tournament-stress.mjs",
+    "check:tournament:finish": "node tests/tournament-finish.mjs",
     "seed:snapshot": "node scripts/snapshot-seed.mjs"
   },
   "engines": {

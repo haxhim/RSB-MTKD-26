@@ -28,13 +28,26 @@ let activeDbClient = null;
 let transactionOpen = false;
 async function initializeDatabase() {
   if (!process.env.DATABASE_URL && !process.env.PGHOST) throw Error('Set DATABASE_URL or PGHOST to a PostgreSQL server');
-  await database.query(`CREATE TABLE IF NOT EXISTS competition_state (
-    id integer PRIMARY KEY CHECK (id = 1),
-    version integer NOT NULL,
-    state jsonb NOT NULL,
-    updated_at timestamptz NOT NULL DEFAULT now()
-  )`);
-  await database.query(fs.readFileSync(path.join(root, 'seed', 'initial-state.sql'), 'utf8'));
+  const client = await database.connect();
+  try {
+    await client.query('BEGIN');
+    // CREATE TABLE IF NOT EXISTS can still race on PostgreSQL's catalog when
+    // two app instances start against a fresh database at the same time.
+    await client.query('SELECT pg_advisory_xact_lock(20261003, 1)');
+    await client.query(`CREATE TABLE IF NOT EXISTS competition_state (
+      id integer PRIMARY KEY CHECK (id = 1),
+      version integer NOT NULL,
+      state jsonb NOT NULL,
+      updated_at timestamptz NOT NULL DEFAULT now()
+    )`);
+    await client.query(fs.readFileSync(path.join(root, 'seed', 'initial-state.sql'), 'utf8'));
+    await client.query('COMMIT');
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 export function parseCsv(text) {
