@@ -55,9 +55,7 @@ The source PDFs visibly shorten 491 names; these are flagged in the CSV and show
 npm run check
 ```
 
-This validates the server and browser scripts and checks roster uniqueness, first contests, corner assignments, and winner progression. Results are stored separately from the source CSVs.
-
-`tests/full-stack.mjs` exercises every page and the result, award, transfer, qualifier, role, and CSV APIs against an **isolated disposable local database**. It writes test results, so do not point it at the venue or production database. Set `RSB_TEST_URL`, `RSB_TEST_ADMIN_PASSWORD`, and `RSB_TEST_ALLOW_MUTATIONS=yes`, then run `npm run check:full-stack`.
+This checks the syntax of the server and browser scripts. Results are stored separately from the source CSVs.
 
 ## Awards desk
 
