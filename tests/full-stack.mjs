@@ -104,6 +104,25 @@ assert.equal(data.bouts.find(b => b.id === source.id).assignedRing,'B');
 assert.equal(data.bouts.find(b => b.id === source.id).code,source.code);
 console.log('PASS bulk transfer preserves bout code and changes assigned ring');
 
+const transferBlock = data.bouts.filter(b => b.day === 1 && b.assignedRing === 'A' && b.code[0] === 'A' &&
+  Number(b.code.match(/^A(\d+)/)?.[1]) >= 47 && Number(b.code.match(/^A(\d+)/)?.[1]) <= 57).sort((a,b) => a.scheduleOrder-b.scheduleOrder);
+const afterB35 = data.bouts.find(b => b.day === 1 && b.assignedRing === 'B' && b.code === 'B35');
+assert.equal(transferBlock.length,11);
+assert.ok(afterB35);
+await post('/api/admin/transfer',{version:data.version,day:1,sourceRing:'A',targetRing:'B',codePrefix:'A',from:47,to:57,afterBoutId:afterB35.id},admin);
+data = await state();
+const moved = transferBlock.map(b => data.bouts.find(current => current.id === b.id));
+assert.ok(moved.every(b => b.assignedRing === 'B'));
+assert.deepEqual(moved.map(b => b.code),transferBlock.map(b => b.code));
+assert.deepEqual(moved.map(b => b.scheduleOrder),Array.from({length:11},(_,i) => data.bouts.find(b => b.id === afterB35.id).scheduleOrder+i+1));
+const transferredReady = moved.find(b => b.status === 'READY');
+assert.ok(transferredReady);
+await post('/api/admin/result',{boutId:transferredReady.id,winnerId:transferredReady.blueId,method:'PTF'},ringA,403);
+await post('/api/admin/result',{boutId:transferredReady.id,winnerId:transferredReady.blueId,method:'PTF'},ringB);
+await post('/api/admin/undo',{boutId:transferredReady.id,reason:'Transfer audit'},ringB);
+console.log('PASS A47–A57 transfer after B35, original codes, order and ring permissions');
+
+data = await state();
 const candidate = data.bouts.find(b => b.day === 1 && b.status === 'READY' && b.directIds.length && b.scheduleOrder > 0 && b.assignedRing === b.code[0]);
 assert.ok(candidate);
 const preceding = data.bouts.find(b => b.day === candidate.day && b.assignedRing === candidate.assignedRing && b.scheduleOrder === candidate.scheduleOrder-1);
@@ -120,6 +139,47 @@ assert.ok(extra.scheduleOrder < data.bouts.find(b => b.id === candidate.id).sche
 assert.ok(data.athletes.some(a => a.name === 'TEST QUALIFIER'));
 assert.match(await request('/api/export.csv'),/TEST QUALIFIER/);
 console.log('PASS qualifying bout insertion, bracket feed and CSV export');
+
+const dualTarget = data.bouts.find(b => b.id !== candidate.id && b.day === 1 && b.status === 'READY' && b.directIds.length === 2 &&
+  b.scheduleOrder > 0 && b.assignedRing === b.code[0]);
+assert.ok(dualTarget);
+const dualAnchor = data.bouts.find(b => b.day === dualTarget.day && b.assignedRing === dualTarget.assignedRing && b.scheduleOrder === dualTarget.scheduleOrder-1);
+assert.ok(dualAnchor);
+const dual = await post('/api/admin/extra-bouts',{version:data.version,entries:dualTarget.directIds.map((sourceAthleteId,i) => ({
+  targetBoutId:dualTarget.id,sourceAthleteId,name:`TEST QUALIFIER ${i+2}`,team:'TEST CLUB',
+  assignedRing:dualTarget.assignedRing,sourceCorner:'B',afterBoutId:dualAnchor.id,
+}))},admin);
+assert.equal(dual.count,2);
+assert.equal(new Set(dual.codes).size,2);
+data = await state();
+const dualBouts = dual.codes.map(code => data.bouts.find(b => b.code === code && b.day === dualTarget.day && b.event === dualTarget.event));
+assert.ok(dualBouts.every(Boolean));
+assert.deepEqual(dualBouts.map(b => b.scheduleOrder),[dualAnchor.scheduleOrder+1,dualAnchor.scheduleOrder+2]);
+assert.equal(data.bouts.find(b => b.id === dualTarget.id).status,'WAITING');
+for (const added of dualBouts) await post('/api/admin/result',{boutId:added.id,winnerId:added.blueId,method:'PTF'},admin);
+data = await state();
+assert.equal(data.bouts.find(b => b.id === dualTarget.id).status,'READY');
+console.log('PASS staged qualifiers save together, stay ordered and feed their destination match');
+
+data = await state();
+const medalBout = data.bouts.find(b => b.stage === 0 && b.status === 'READY' && b.event.includes('KYORUGI') &&
+  data.bouts.filter(other => other.day === b.day && other.event === b.event && other.category === b.category && other.code[0] === b.code[0]).length === 1);
+assert.ok(medalBout);
+await post('/api/admin/result',{boutId:medalBout.id,winnerId:medalBout.blueId,method:'PTF'},admin);
+data = await state();
+let medalAward = data.awards.find(a => a.finalCode === medalBout.code && a.event === medalBout.event && a.category === medalBout.category);
+assert.ok(medalAward && medalAward.medals.length);
+for (const medal of medalAward.medals)
+  await post('/api/admin/award/medal',{awardId:medalAward.id,athleteId:medal.athleteId,state:'DELIVERED'},awardsToken);
+data = await state();
+assert.equal(data.awards.find(a => a.id === medalAward.id).status,'DELIVERED');
+await post('/api/admin/undo',{boutId:medalBout.id,reason:'Correct result'},admin);
+await post('/api/admin/result',{boutId:medalBout.id,winnerId:medalBout.blueId,method:'PTF'},admin);
+data = await state();
+medalAward = data.awards.find(a => a.id === medalAward.id);
+assert.equal(medalAward.status,'CALLED');
+assert.ok(medalAward.medals.every(m => m.state === 'PENDING'));
+console.log('PASS revoked Kyorugi result clears old medal delivery before replay');
 
 assert.ok((await request('/api/admin/audit',{token:admin})).length > 0);
 console.log(`PASS complete integration suite, final database version ${data.version}`);

@@ -8,6 +8,8 @@
     "dev": "node --watch server.mjs",
     "check": "node --check server.mjs && node --check public/app.js && node --test tests/*.test.mjs",
     "check:full-stack": "node tests/full-stack.mjs",
+    "check:day1": "node tests/day1-completion.mjs",
+    "check:day2": "node tests/day2-completion.mjs",
     "seed:snapshot": "node scripts/snapshot-seed.mjs"
   },
   "engines": {

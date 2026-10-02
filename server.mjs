@@ -596,6 +596,7 @@ async function handleRequest(req, res) {
         }
         if ([...later].some(id => results.bouts[id])) return error(res, 409, 'Undo later results in this bracket first');
         delete results.bouts[bout.id];
+        delete results.awards[JSON.stringify([bout.day, bout.event, bout.code[0], bout.category])];
         results.audit.push({ action: 'UNDO', boutId: bout.id, note: String(body.reason || '').slice(0, 500), recordedAt: new Date().toISOString() });
         results.version++;
         await save();
