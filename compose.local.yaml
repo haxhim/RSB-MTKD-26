@@ -1,5 +1,12 @@
 # Local preview only. Dokploy uses compose.yaml without this override.
 services:
   rsb:
+    environment:
+      PGHOST: db
     ports:
       - "127.0.0.1:3000:3000"
+
+networks:
+  default:
+    name: rsb-preview-network
+    external: false

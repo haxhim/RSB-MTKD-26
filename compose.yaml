@@ -8,6 +8,10 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set a strong POSTGRES_PASSWORD in Dokploy}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      default:
+        aliases:
+          - rsb-mtkd-2026-db
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U rsb -d rsb"]
       interval: 10s
@@ -23,7 +27,7 @@ services:
       NODE_ENV: production
       HOST: 0.0.0.0
       PORT: "3000"
-      PGHOST: db
+      PGHOST: rsb-mtkd-2026-db
       PGPORT: "5432"
       PGUSER: rsb
       PGPASSWORD: ${POSTGRES_PASSWORD:?Set a strong POSTGRES_PASSWORD in Dokploy}
@@ -40,3 +44,8 @@ services:
 
 volumes:
   postgres_data:
+
+networks:
+  default:
+    name: dokploy-network
+    external: true
