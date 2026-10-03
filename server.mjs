@@ -229,7 +229,7 @@ export function buildAwardState(bouts, stored = {}) {
     const final = group.find(b => b.stage === 0);
     if (!final) continue;
     const finished = group.every(b => ['COMPLETE','BYE'].includes(b.status));
-    const autoRing = final.event === 'POOMSAE CARNIVAL' || /VIRTUAL|\bVR\b/i.test(final.event);
+    const autoRing = (final.day === 1 && !/POOMSAE\s*(?:PRO|SANCTION)/i.test(final.event)) || /VIRTUAL|\bVR\b/i.test(final.event);
     const saved = stored[id] || {}, medals = [];
     if (finished && final.winnerId) {
       medals.push({ athleteId:final.winnerId, medal:'Gold' });

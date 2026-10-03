@@ -59,9 +59,9 @@ This checks the syntax of the server and browser scripts. Results are stored sep
 
 ## Awards desk
 
-The public [Awards page](http://127.0.0.1:3000/awards) lists only finished categories, with podium calls and medal status. It also appears in the public navigation and the Results page. When all bouts in a category finish, the system identifies the gold, silver, and semifinal bronze medalists and changes the category from **Not called** to **Called**. Awards staff can call the names again, mark each medal **Delivered**, or mark an athlete **Absent**. When every medalist is delivered or absent, the category becomes **Delivered**. Corrections can be made with **Reset**. The public pages refresh every 10 seconds.
+The public [Awards page](http://127.0.0.1:3000/awards) lists only finished categories, with podium calls and medal status. The Results page shows the team medal tally. When all bouts in a category finish, the system identifies the gold, silver, and semifinal bronze medalists and changes the category from **Not called** to **Called**. Awards staff can call the names again, mark each medal **Delivered**, or mark an athlete **Absent**. When every medalist is delivered or absent, the category becomes **Delivered**. Corrections can be made with **Reset**. The public pages refresh every 10 seconds.
 
-The lead admin sets a six-digit **Awards desk** PIN under **Staff PINs**. Staff choose **Awards desk** at `/admin` sign-in. That role can work with awards only; it cannot change bout results or schedules. Poomsae Carnival and Virtual categories become **Delivered in Ring** when finished and require no awards desk action.
+The lead admin sets a six-digit **Awards desk** PIN under **Staff PINs**. Staff choose **Awards desk** at `/admin` sign-in. That role can work with awards only; it cannot change bout results or schedules. All Day 1 categories except Poomsae Sanction (listed as Poomsae Pro in the app) become **Delivered in Ring** when finished and require no awards desk action. Virtual categories on Day 2 retain their in-ring delivery rule.
 
 ## Poomsae Pro
 
