@@ -294,7 +294,8 @@ function resultView() {
     : [['9 - 11','9–11'],['12 - 14','12–14'],['15 - 17','15–17'],['17 ABOVE','17 and above'],['ALL','Grand overall combine']];
   const ageMatches = category => tallyAge === 'ALL' || (tallyAge === '18 ABOVE' ? /^(?:18\s*-\s*\d+|ABOVE\s*\d+)/i.test(category)
     : tallyAge === '17 ABOVE' ? /^ABOVE\s*17\b/i.test(category) : category.startsWith(tallyAge));
-  const eligible = data.awards.filter(a => a.day === day && a.event === tallyEvent && a.finished && a.medals.length &&
+  const combinedVirtual = day2 && tallyEvent === 'VIRTUAL DAY 2';
+  const eligible = data.awards.filter(a => (combinedVirtual ? (a.event === 'VIRTUAL DAY 1' || a.event === 'VIRTUAL DAY 2') : a.day === day && a.event === tallyEvent) && a.finished && a.medals.length &&
     (!pro || (data.poomsae.find(g => g.id === a.id)?.entrants.length || 0) >= 3) &&
     (pro ? tallyScope === 'ALL' || (tallyScope === '18 ABOVE' ? /(?:^|\/)\s*(?:18\s*-\s*30|31\s*-\s*40|41\s*-\s*50|ABOVE\s*51)\s*(?:\/|$)/i.test(a.category) : a.category.includes(tallyScope)) : !day2 || ageMatches(a.category)));
   const rows = new Map();
@@ -312,7 +313,7 @@ function resultView() {
     <div class="tally-events" role="group" aria-label="Competition category">${events.map(([id,name]) => `<button type="button" data-tally-event="${id}" class="${tallyEvent === id ? 'selected' : ''}" aria-pressed="${tallyEvent === id}">${name}</button>`).join('')}</div>
     ${day2 ? `<div class="tally-scopes" role="group" aria-label="Age group">${ages.map(([id,name]) => `<button type="button" data-tally-age="${escapeAttr(id)}" class="${tallyAge === id ? 'selected' : ''}" aria-pressed="${tallyAge === id}">${name}</button>`).join('')}</div>` : ''}
     <div class="tally-scopes" role="group" aria-label="Team ranking">${scopes.map(([id,name]) => `<button type="button" data-tally-scope="${escapeAttr(id)}" class="${tallyScope === id ? 'selected' : ''}" aria-pressed="${tallyScope === id}">${name}</button>`).join('')}</div>
-    ${pro ? '<p class="tally-note">Poomsae Pro medals count only when a category has at least 3 participants.</p>' : ''}
+    ${pro ? '<p class="tally-note">Poomsae Pro medals count only when a category has at least 3 participants.</p>' : combinedVirtual ? '<p class="tally-note">Virtual standings combine completed categories from Day 1 and Day 2.</p>' : ''}
     <div class="tally-table-wrap"><table class="tally-table"><thead><tr><th scope="col">Rank</th><th scope="col">Team</th><th scope="col">Gold</th><th scope="col">Silver</th><th scope="col">Bronze</th><th scope="col">Total</th></tr></thead><tbody>${standings.map((row,i) => `<tr><td><span class="tally-rank">${i+1}</span></td><th scope="row">${escapeHtml(row.team)}</th><td>${row.gold}</td><td>${row.silver}</td><td>${row.bronze}</td><td><strong>${row.gold+row.silver+row.bronze}</strong></td></tr>`).join('') || '<tr><td colspan="6" class="tally-empty">No completed categories in this selection yet.</td></tr>'}</tbody></table></div>
   </section>`;
 }
