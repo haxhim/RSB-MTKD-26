@@ -45,7 +45,7 @@ The Tomato PDF lists show each athlete's path from final toward the first schedu
 
 When an athlete enters a later bracket round directly, the public bracket draws a visual BYE slot in the previous round and connects it to that athlete's match. If both athletes enter directly, each gets a BYE slot, as in Day 2 A14. These BYE cards are display-only; they do not create extra result records.
 
-Day 2 uses the same A–J ring cards as Day 1: A–G show individual Kyorugi, I–J show VR, and H shows the supplied Team Sparring bracket. The server keeps Team Sparring bouts waiting until all Day 2 individual Kyorugi bouts are complete.
+Day 2 uses the same A–J ring cards as Day 1: A–G show individual Kyorugi, I–J show VR, and H shows the supplied Team Sparring bracket. Ring H Team Sparring can run alongside individual Kyorugi once its own bouts are ready.
 
 The source PDFs visibly shorten 491 names; these are flagged in the CSV and shown as printed until a complete roster is supplied. Five Day 1 entries have no bout code and remain in the athlete data without a scheduled contest. The Virtual Day 2 PDF header says **3 October 2026** even though it was supplied in the Day 2 folder; the system follows the folder's Day 2 assignment. Confirm that date with the organizer before venue use.
 

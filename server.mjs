@@ -204,15 +204,6 @@ export function projectCompetition(competition, stored) {
     return state;
   }
   const projected = competition.bouts.map(b => resolve(b.id));
-  const isTeamKyorugi = b => /TEAM\s*(?:KYORUGI|SPARRING)|(?:KYORUGI|SPARRING)\s*TEAM/i.test(`${b.event} ${b.category}`);
-  const isVirtual = b => /VIRTUAL|\bVR\b/i.test(b.event);
-  const individualKyorugiPending = projected.some(b => b.day === 2 && !isTeamKyorugi(b) && !isVirtual(b) && !['COMPLETE', 'BYE'].includes(b.status));
-  if (individualKyorugiPending) for (const bout of projected) {
-    if (bout.day === 2 && isTeamKyorugi(bout) && bout.status === 'READY') {
-      bout.status = 'WAITING';
-      bout.scheduleHold = 'After individual Kyorugi';
-    }
-  }
   return projected.sort((a, b) => a.day - b.day || a.event.localeCompare(b.event) ||
     a.code.localeCompare(b.code, undefined, { numeric: true }));
 }
