@@ -268,6 +268,38 @@ export function buildPoomsaeState(entries, saved = {}) {
   });
 }
 
+export function medalResultsCsv(data) {
+  const finished = data.awards.filter(award => award.finished && award.medals.length)
+    .sort((a, b) => a.day - b.day || a.event.localeCompare(b.event) || a.category.localeCompare(b.category, undefined, { numeric:true }));
+  const kinds = ['Gold', 'Silver', 'Bronze'];
+  const counts = Object.fromEntries(kinds.map(kind => [kind, Math.max(kind === 'Bronze' ? 2 : 1,
+    ...finished.map(award => award.medals.filter(medal => medal.medal === kind).length))]));
+  const athleteById = new Map(data.athletes.map(athlete => [athlete.id, athlete]));
+  const headings = ['Category'];
+  for (const kind of kinds) for (let index = 1; index <= counts[kind]; index++) {
+    const label = kind === 'Bronze' || index > 1 ? `${kind} ${index}` : `${kind} medal`;
+    headings.push(`${label} name`, `${label} team`);
+  }
+  headings.push('Day', 'Event', 'Ring');
+  const lines = [headings, ...finished.map(award => {
+    const line = [award.category];
+    for (const kind of kinds) {
+      const medalists = award.medals.filter(medal => medal.medal === kind);
+      for (let index = 0; index < counts[kind]; index++) {
+        const athlete = athleteById.get(medalists[index]?.athleteId);
+        line.push(athlete?.name || '', athlete?.team || '');
+      }
+    }
+    return [...line, award.day, award.event, award.ring];
+  })];
+  const quote = value => {
+    const text = String(value ?? '');
+    const safe = /^[\s]*[=+@-]/.test(text) ? `'${text}` : text;
+    return `"${safe.replaceAll('"', '""')}"`;
+  };
+  return '\uFEFF' + lines.map(line => line.map(quote).join(',')).join('\r\n');
+}
+
 function buildPoomsaeAwards(groups, stored = {}) {
   return groups.map(group => {
     const saved = stored[group.id] || {};
@@ -615,6 +647,12 @@ async function handleRequest(req, res) {
         [b.day,b.event,b.code,b.assignedRing,b.scheduleOrder,b.category,athletesById.get(b.redId)?.name,athletesById.get(b.blueId)?.name,athletesById.get(b.winnerId)?.name,b.method,b.status])];
       res.writeHead(200, { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': 'attachment; filename="rsb-results.csv"' });
       return res.end('\uFEFF' + lines.map(line => line.map(quote).join(',')).join('\r\n'));
+    }
+    if (req.method === 'GET' && url.pathname === '/api/medal-results.csv') {
+      const csv = medalResultsCsv(publicData());
+      res.writeHead(200, { 'Content-Type':'text/csv; charset=utf-8',
+        'Content-Disposition':'attachment; filename="rsb-medal-results.csv"', 'Cache-Control':'no-store' });
+      return res.end(csv);
     }
     if (req.method !== 'GET') return error(res, 404, 'Not found');
     const publicPages = new Set(['/live','/schedule','/brackets','/teams','/results','/awards']);

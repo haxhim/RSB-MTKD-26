@@ -308,7 +308,7 @@ function resultView() {
   }
   const ranked = [...rows.values()].sort((a,b) => b.gold-a.gold || b.silver-a.silver || b.bronze-a.bronze || a.team.localeCompare(b.team));
   const standings = !pro && tallyScope !== 'ALL' ? ranked.slice(0,Number(tallyScope)) : ranked;
-  return `<section class="tally-panel"><div class="tally-intro"><p class="eyebrow">Official standings</p><h2>Team medal tally</h2><p>Medals update when each category is complete.</p></div>
+  return `<section class="tally-panel"><div class="tally-intro"><div><p class="eyebrow">Official standings</p><h2>Team medal tally</h2><p>Medals update when each category is complete.</p></div><a class="tally-export" href="/api/medal-results.csv">Export all results CSV</a></div>
     <div class="tally-day"><div class="day-toggle" role="group" aria-label="Competition day"><button data-day="2" class="${day === 2 ? 'selected' : ''}">Day 2 <small>4 Oct</small></button><button data-day="1" class="${day === 1 ? 'selected' : ''}">Day 1 <small>3 Oct</small></button></div></div>
     <div class="tally-events" role="group" aria-label="Competition category">${events.map(([id,name]) => `<button type="button" data-tally-event="${id}" class="${tallyEvent === id ? 'selected' : ''}" aria-pressed="${tallyEvent === id}">${name}</button>`).join('')}</div>
     ${day2 ? `<div class="tally-scopes" role="group" aria-label="Age group">${ages.map(([id,name]) => `<button type="button" data-tally-age="${escapeAttr(id)}" class="${tallyAge === id ? 'selected' : ''}" aria-pressed="${tallyAge === id}">${name}</button>`).join('')}</div>` : ''}
